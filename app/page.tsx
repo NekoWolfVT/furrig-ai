@@ -67,7 +67,7 @@ export default function HomePage() {
               <Feature href="/library" icon="🌐" title="World Library" text="Publish your work and explore the community." />
               <Feature href="/messages" icon="👥" title="Connect" text="Add friends, chat, and collaborate." />
               <Feature href="/profile" icon="⭐" title="Level Up" text="Earn hearts, level up, unlock more." />
-              <Feature href="/studio" icon="🤖" title="AI Tools" text="Powerful AI tools built for creators." />
+              <Feature href="/dashboard/riggy-builder" icon="🤖" title="Riggy Builder" text="Customize Riggy into anything with prompts." />
               <Feature href="/events" icon="📅" title="Events" text="Join events and creative contests." />
             </div>
           </div>
@@ -208,25 +208,24 @@ export default function HomePage() {
 
               <div className="flex-1">
                 <h3 className="text-3xl font-black text-pink-300">
-                  Riggy AI Helper
+                  Riggy Builder
                 </h3>
 
                 <p className="mt-2 text-purple-100">
-                  Need help creating VTubers, avatars, music videos, movies,
-                  lore, prompts or artwork?
+                  Change Riggy into anything you can imagine using prompts.
                 </p>
 
                 <p className="mt-1 text-pink-300">
-                  Ask Riggy anything ✨
+                  Bunny • Wolf • Dragon • Fox • Vampire • Custom ✨
                 </p>
               </div>
 
-              <button
-                onClick={() => setRiggyOpen(true)}
+              <Link
+                href="/dashboard/riggy-builder"
                 className="rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 text-xl font-black shadow-[0_0_25px_#ec4899]"
               >
-                Open Riggy
-              </button>
+                Open Builder
+              </Link>
             </div>
           </div>
         </div>
