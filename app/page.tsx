@@ -148,7 +148,7 @@ export default function HomePage() {
           <div className="flex justify-end">
             {isSignedIn ? (
               <div className="flex items-center gap-4 rounded-3xl border border-purple-500/30 bg-black/40 px-5 py-3">
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
                 <div>
                   <p className="font-bold">Profile</p>
                   <p className="text-sm text-green-400">● Online</p>
