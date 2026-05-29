@@ -1,25 +1,14 @@
 "use client";
 
 async function checkout(plan: string) {
-  try {
-    const response = await fetch("/api/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        plan,
-      }),
-    });
+  const response = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ plan }),
+  });
 
-    const data = await response.json();
-
-    if (data.url) {
-      window.location.href = data.url;
-    }
-  } catch (error) {
-    console.log(error);
-  }
+  const data = await response.json();
+  if (data.url) window.location.href = data.url;
 }
 
 const pricingPlans = [
@@ -38,7 +27,6 @@ const pricingPlans = [
       "Basic profile picture tools",
     ],
   },
-
   {
     title: "Creator",
     price: "$12",
@@ -54,7 +42,6 @@ const pricingPlans = [
       "Creator Hub publishing",
     ],
   },
-
   {
     title: "Pro Studio",
     price: "$29",
@@ -70,7 +57,6 @@ const pricingPlans = [
       "3-Day Free Trial",
     ],
   },
-
   {
     title: "Enterprise",
     price: "$99",
@@ -91,15 +77,46 @@ const pricingPlans = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#05000d] text-white">
+      <section className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 py-24 text-center">
+        <div className="rounded-full border border-purple-500/40 bg-purple-500/10 px-5 py-2 text-sm text-purple-200">
+          Welcome to FurRig AI
+        </div>
+
+        <h1 className="mt-8 text-6xl font-black md:text-8xl">
+          Build Your Dream{" "}
+          <span className="text-purple-500">VTuber Avatar</span>
+        </h1>
+
+        <p className="mt-6 max-w-3xl text-xl text-purple-200">
+          Create furry avatars, stream pets, overlays, VRChat-ready characters,
+          and AI-powered creator tools for your online world.
+        </p>
+
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <a
+            href="/sign-up"
+            className="rounded-2xl bg-purple-600 px-8 py-4 font-bold hover:bg-purple-500"
+          >
+            Start Creating Free
+          </a>
+
+          <a
+            href="/dashboard"
+            className="rounded-2xl border border-purple-500 px-8 py-4 font-bold hover:bg-purple-950"
+          >
+            Go to Dashboard
+          </a>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-6 py-24">
         <div className="text-center">
-          <h1 className="text-7xl font-black">
-            FurRig <span className="text-purple-500">AI</span>
-          </h1>
+          <h2 className="text-6xl font-black">
+            FurRig <span className="text-purple-500">AI</span> Plans
+          </h2>
 
           <p className="mt-6 text-xl text-purple-200">
-            AI VTuber creation platform for furry creators, streamers, and
-            virtual idols.
+            Choose the creator tier that fits your FurRig journey.
           </p>
         </div>
 
@@ -115,19 +132,16 @@ export default function HomePage() {
                   : "border-purple-500/20 bg-black/40"
               }`}
             >
-              <h2
+              <h3
                 className={`text-4xl font-black ${
-                  plan.title === "Enterprise"
-                    ? "text-yellow-400"
-                    : "text-white"
+                  plan.title === "Enterprise" ? "text-yellow-400" : "text-white"
                 }`}
               >
                 {plan.title}
-              </h2>
+              </h3>
 
               <div className="mt-6">
                 <span className="text-6xl font-black">{plan.price}</span>
-
                 <span className="text-2xl text-purple-200">/month</span>
               </div>
 
@@ -143,38 +157,26 @@ export default function HomePage() {
                 ))}
               </ul>
 
-              {plan.title === "Free" && (
-                <button className="mt-10 w-full rounded-2xl bg-purple-600 py-4 font-bold hover:bg-purple-500">
-                  {plan.button}
-                </button>
-              )}
-
-              {plan.title === "Creator" && (
-                <button
-                  onClick={() => checkout("creator")}
-                  className="mt-10 w-full rounded-2xl bg-purple-600 py-4 font-bold hover:bg-purple-500"
-                >
-                  {plan.button}
-                </button>
-              )}
-
-              {plan.title === "Pro Studio" && (
-                <button
-                  onClick={() => checkout("pro")}
-                  className="mt-10 w-full rounded-2xl bg-purple-600 py-4 font-bold hover:bg-purple-500"
-                >
-                  {plan.button}
-                </button>
-              )}
-
-              {plan.title === "Enterprise" && (
-                <button
-                  onClick={() => checkout("enterprise")}
-                  className="mt-10 w-full rounded-2xl bg-yellow-500 py-4 font-bold text-black hover:bg-yellow-400"
-                >
-                  {plan.button}
-                </button>
-              )}
+              <button
+                onClick={() =>
+                  plan.title === "Free"
+                    ? (window.location.href = "/sign-up")
+                    : checkout(
+                        plan.title === "Creator"
+                          ? "creator"
+                          : plan.title === "Pro Studio"
+                          ? "pro"
+                          : "enterprise"
+                      )
+                }
+                className={`mt-10 w-full rounded-2xl py-4 font-bold ${
+                  plan.title === "Enterprise"
+                    ? "bg-yellow-500 text-black hover:bg-yellow-400"
+                    : "bg-purple-600 hover:bg-purple-500"
+                }`}
+              >
+                {plan.button}
+              </button>
             </div>
           ))}
         </div>
