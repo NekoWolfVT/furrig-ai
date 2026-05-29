@@ -2,6 +2,13 @@ import Link from "next/link";
 
 const tools = [
   {
+    title: "Riggy Builder",
+    text: "Customize Riggy with prompts and animated looks.",
+    href: "/dashboard/riggy-builder",
+    icon: "🐰",
+    button: "Customize Riggy",
+  },
+  {
     title: "VTuber Model",
     text: "Create a furry or anime VTuber avatar.",
     href: "/dashboard/avatar",
@@ -37,11 +44,11 @@ const tools = [
     button: "Open Overlay",
   },
   {
-    title: "Riggy Pet",
-    text: "Create your animated stream pet and AI chat companion.",
-    href: "/dashboard/pet",
-    icon: "🐺",
-    button: "Create Pet",
+    title: "Riggy OBS Pet",
+    text: "Use your custom Riggy as an OBS stream companion.",
+    href: "/overlay/pet",
+    icon: "📡",
+    button: "Test OBS",
   },
 ];
 
@@ -60,26 +67,68 @@ export default function StudioPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-xl text-purple-200">
-              Build avatars, rig models, create music videos, design overlays,
+              Build avatars, customize Riggy, create videos, design overlays,
               and bring your FurRig world to life.
             </p>
           </div>
 
           <Link
-            href="/dashboard/profile"
+            href="/profile"
             className="rounded-2xl border border-purple-500 px-6 py-3 font-bold hover:bg-purple-950"
           >
-            Edit Profile
+            My Profile
           </Link>
         </div>
+
+        <section className="mt-12 rounded-[2rem] border border-pink-500/40 bg-black/50 p-8 shadow-[0_0_50px_#ec489944]">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+            <div>
+              <p className="text-pink-300">Featured Tool</p>
+
+              <h2 className="mt-3 text-5xl font-black">
+                Riggy Builder
+              </h2>
+
+              <p className="mt-5 max-w-2xl text-xl text-purple-100">
+                Type a prompt and transform Riggy into anything: bunny, wolf,
+                dragon, vampire, robot, fox, gothic mascot, or custom AI companion.
+              </p>
+
+              <Link
+                href="/dashboard/riggy-builder"
+                className="mt-8 inline-block rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 text-xl font-black shadow-[0_0_30px_#ec4899]"
+              >
+                Open Riggy Builder →
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-center">
+              <div className="flex h-60 w-60 items-center justify-center rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500 to-purple-800 text-8xl shadow-[0_0_70px_#ec4899]">
+                🐰
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="mt-12 rounded-[2rem] border border-purple-500/30 bg-purple-950/20 p-8 shadow-[0_0_50px_#7c3aed33]">
           <h2 className="text-3xl font-black">Quick Start</h2>
 
           <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <QuickStep number="1" title="Choose a tool" text="Pick avatar, rigging, video, movie, or overlay studio." />
-            <QuickStep number="2" title="Upload or create" text="Use AI prompts or upload your own character art." />
-            <QuickStep number="3" title="Export and share" text="Save projects, publish to your profile, or stream with OBS." />
+            <QuickStep
+              number="1"
+              title="Choose a tool"
+              text="Pick Riggy Builder, avatar creator, rigging, video, movie, or overlay studio."
+            />
+            <QuickStep
+              number="2"
+              title="Create with prompts"
+              text="Use AI prompts or upload your own character art and ideas."
+            />
+            <QuickStep
+              number="3"
+              title="Export and share"
+              text="Save projects, publish to your profile, or stream with OBS."
+            />
           </div>
         </section>
 
