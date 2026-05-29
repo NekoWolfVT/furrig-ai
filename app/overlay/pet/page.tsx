@@ -2,42 +2,36 @@
 
 import { useEffect, useState } from "react";
 
-const sprites: Record<string, string> = {
-  idle: "/pets/riggy_idle.png",
-  blink: "/pets/riggy_blink.png",
-  happy: "/pets/riggy_happy.png",
-  sad: "/pets/riggy_sad.png",
-  talk: "/pets/riggy_talk.png",
-  sleep: "/pets/riggy_sleep.png",
+type RiggyEvent = {
+  message: string;
+  mood: string;
+  time: number;
 };
 
 export default function PetOverlay() {
-  const [type, setType] = useState("idle");
-  const [message, setMessage] = useState("");
-  const [lastTime, setLastTime] = useState(0);
-  const [blinking, setBlinking] = useState(false);
+  const [event, setEvent] = useState<RiggyEvent>({
+    message: "H-Hello... where am I?",
+    mood: "idle",
+    time: Date.now(),
+  });
 
-  // =========================
-  // Listen for Riggy events
-  // =========================
+  const [blinking, setBlinking] = useState(false);
+  const [showBubble, setShowBubble] = useState(false);
 
   useEffect(() => {
     const poll = setInterval(async () => {
       try {
-        const res = await fetch("/api/riggy-event");
+        const res = await fetch("/api/riggy/event");
         const data = await res.json();
 
-        if (data.time !== lastTime) {
-          setLastTime(data.time);
+        if (data.message && data.time !== event.time) {
+          setEvent(data);
 
-          setType(data.type || "idle");
-          setMessage(data.message || "");
+          setShowBubble(true);
 
-          // Return to idle after 5 sec
           setTimeout(() => {
-            setType("idle");
-            setMessage("");
-          }, 5000);
+            setShowBubble(false);
+          }, 8000);
         }
       } catch (err) {
         console.error(err);
@@ -45,57 +39,59 @@ export default function PetOverlay() {
     }, 1000);
 
     return () => clearInterval(poll);
-  }, [lastTime]);
-
-  // =========================
-  // Blink animation
-  // =========================
+  }, [event.time]);
 
   useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      if (type !== "idle") return;
-
+    const blinkTimer = setInterval(() => {
       setBlinking(true);
 
       setTimeout(() => {
         setBlinking(false);
       }, 250);
-    }, 3500);
+    }, 4000);
 
-    return () => clearInterval(blinkInterval);
-  }, [type]);
+    return () => clearInterval(blinkTimer);
+  }, []);
 
-  // =========================
-  // Current sprite
-  // =========================
+  function getRiggyImage() {
+    if (event.mood === "talk") {
+      return "/pets/riggy_talk.png";
+    }
 
-  const currentImage =
-    blinking && type === "idle"
-      ? sprites.blink
-      : sprites[type] || sprites.idle;
+    if (event.mood === "happy") {
+      return "/pets/riggy_happy.png";
+    }
+
+    if (event.mood === "sad") {
+      return "/pets/riggy_sad.png";
+    }
+
+    if (event.mood === "sleep") {
+      return "/pets/riggy_sleep.png";
+    }
+
+    if (blinking) {
+      return "/pets/riggy_blink.png";
+    }
+
+    return "/pets/riggy_idle.png";
+  }
 
   return (
     <main
-      className="w-screen h-screen overflow-hidden"
-      style={{
-        background: "transparent",
-      }}
+      className="h-screen w-screen overflow-hidden"
+      style={{ background: "transparent" }}
     >
       <div className="absolute bottom-10 left-10 flex items-end gap-4">
-
-        {/* Riggy */}
-
         <img
-          src={currentImage}
+          src={getRiggyImage()}
           alt="Riggy"
-          className="w-32 h-32 object-contain select-none pointer-events-none drop-shadow-[0_0_30px_rgba(255,0,200,0.8)]"
+          className="h-32 w-32 object-contain drop-shadow-[0_0_25px_rgba(255,0,200,0.9)]"
         />
 
-        {/* Speech Bubble */}
-
-        {message && (
-          <div className="max-w-md rounded-[2rem] border-4 border-pink-400 bg-black/80 p-6 text-3xl font-black text-white shadow-[0_0_30px_rgba(255,0,200,0.8)]">
-            {message}
+        {showBubble && (
+          <div className="max-w-md rounded-[2rem] border-4 border-pink-400 bg-black/80 p-6 text-2xl font-black text-white shadow-[0_0_30px_rgba(255,0,200,0.7)]">
+            {event.message}
           </div>
         )}
       </div>
