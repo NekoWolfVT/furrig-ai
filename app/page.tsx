@@ -33,7 +33,9 @@ export default function HomePage() {
                 <h1 className="text-5xl font-black">
                   FurRig <span className="text-purple-500">AI</span>
                 </h1>
-                <p className="text-lg text-purple-200">Create Without Limits.</p>
+                <p className="text-lg text-purple-200">
+                  Create Without Limits.
+                </p>
               </div>
             </div>
 
@@ -126,7 +128,9 @@ export default function HomePage() {
               </div>
 
               <h2 className="mt-10 text-5xl font-black">Your Avatar Here</h2>
-              <p className="mt-4 text-purple-200">Add your FurRig character art later.</p>
+              <p className="mt-4 text-purple-200">
+                Add your FurRig character art later.
+              </p>
             </div>
           </div>
         </div>
@@ -166,7 +170,9 @@ export default function HomePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200">Create. Share. Win.</p>
-                <h3 className="mt-3 text-xl font-black">1 Month Enterprise Membership</h3>
+                <h3 className="mt-3 text-xl font-black">
+                  1 Month Enterprise Membership
+                </h3>
                 <Link href="/events" className="mt-5 inline-block rounded-xl bg-purple-600 px-8 py-3 font-bold">
                   Join Now
                 </Link>
@@ -194,33 +200,37 @@ export default function HomePage() {
             </div>
           </Panel>
 
-          <div className="rounded-3xl border border-purple-500/40 bg-black/50 p-6 shadow-[0_0_40px_#7c3aed44]">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-2xl font-black">Age Verification</h3>
-                <p className="mt-2 text-purple-200">
-                  FurRig AI is a 13+ platform.
-                  <br />
-                  Verify your age to continue.
+          <div className="rounded-3xl border border-pink-500/50 bg-black/60 p-6 shadow-[0_0_40px_#ec4899]">
+            <div className="flex items-center gap-5">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-purple-700 text-5xl shadow-[0_0_30px_#ec4899]">
+                🐰
+              </div>
+
+              <div className="flex-1">
+                <h3 className="text-3xl font-black text-pink-300">
+                  Riggy AI Helper
+                </h3>
+
+                <p className="mt-2 text-purple-100">
+                  Need help creating VTubers, avatars, music videos, movies,
+                  lore, prompts or artwork?
+                </p>
+
+                <p className="mt-1 text-pink-300">
+                  Ask Riggy anything ✨
                 </p>
               </div>
 
-              <Link href="/profile" className="rounded-2xl bg-purple-600 px-8 py-4 text-xl font-black">
-                Verify Age
-              </Link>
+              <button
+                onClick={() => setRiggyOpen(true)}
+                className="rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 text-xl font-black shadow-[0_0_25px_#ec4899]"
+              >
+                Open Riggy
+              </button>
             </div>
           </div>
         </div>
       </section>
-
-      <button
-        onClick={() => setRiggyOpen(true)}
-        className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 rounded-full border border-pink-400 bg-black px-6 py-4 text-lg font-black text-pink-200 shadow-[0_0_40px_#ec4899]"
-        aria-label="Open Riggy AI Helper"
-      >
-        <span className="text-4xl">🐰</span>
-        Ask Riggy
-      </button>
 
       {riggyOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4">
