@@ -1,36 +1,39 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   SignInButton,
   SignUpButton,
   UserButton,
   useUser,
 } from "@clerk/nextjs";
+import RiggyAssistant from "@/components/RiggyAssistant";
 
 export default function HomePage() {
   const { isSignedIn } = useUser();
+  const [riggyOpen, setRiggyOpen] = useState(false);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#05000d] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#4b008855,transparent_45%)]" />
 
       <section className="relative grid min-h-screen grid-cols-1 gap-6 p-6 lg:grid-cols-[1.1fr_1.3fr_1fr]">
-        {/* LEFT */}
         <div className="z-10 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-purple-400 bg-purple-950 shadow-[0_0_30px_#a855f7]">
+              <Link
+                href="/"
+                className="flex h-20 w-20 items-center justify-center rounded-3xl border border-purple-400 bg-purple-950 shadow-[0_0_30px_#a855f7]"
+              >
                 🐺
-              </div>
+              </Link>
 
               <div>
                 <h1 className="text-5xl font-black">
                   FurRig <span className="text-purple-500">AI</span>
                 </h1>
-                <p className="text-lg text-purple-200">
-                  Create Without Limits.
-                </p>
+                <p className="text-lg text-purple-200">Create Without Limits.</p>
               </div>
             </div>
 
@@ -57,13 +60,13 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-3">
-              <Feature icon="🪄" title="Create Anything" text="VTubers, videos, music, avatars, and more." />
-              <Feature icon="🌐" title="World Library" text="Publish your work and explore the community." />
-              <Feature icon="👥" title="Connect" text="Add friends, chat, and collaborate." />
-              <Feature icon="⭐" title="Level Up" text="Earn hearts, level up, unlock more." />
-              <Feature icon="🤖" title="AI Tools" text="Powerful AI tools built for creators." />
-              <Feature icon="📅" title="Events" text="Join events and creative contests." />
+            <div id="features" className="mt-8 grid grid-cols-2 gap-3">
+              <Feature href="/studio" icon="🪄" title="Create Anything" text="VTubers, videos, music, avatars, and more." />
+              <Feature href="/library" icon="🌐" title="World Library" text="Publish your work and explore the community." />
+              <Feature href="/messages" icon="👥" title="Connect" text="Add friends, chat, and collaborate." />
+              <Feature href="/profile" icon="⭐" title="Level Up" text="Earn hearts, level up, unlock more." />
+              <Feature href="/studio" icon="🤖" title="AI Tools" text="Powerful AI tools built for creators." />
+              <Feature href="/events" icon="📅" title="Events" text="Join events and creative contests." />
             </div>
           </div>
 
@@ -82,26 +85,17 @@ export default function HomePage() {
                   </button>
                 </SignInButton>
 
-                <Link
-                  href="#features"
-                  className="block text-center text-lg text-purple-200"
-                >
+                <Link href="#features" className="block text-center text-lg text-purple-200">
                   Explore as Guest
                 </Link>
               </>
             ) : (
               <>
-                <Link
-                  href="/dashboard"
-                  className="block w-full rounded-3xl bg-gradient-to-r from-purple-700 to-purple-500 py-5 text-center text-2xl font-black shadow-[0_0_25px_#7c3aed]"
-                >
+                <Link href="/dashboard" className="block w-full rounded-3xl bg-gradient-to-r from-purple-700 to-purple-500 py-5 text-center text-2xl font-black shadow-[0_0_25px_#7c3aed]">
                   Open Dashboard →
                 </Link>
 
-                <Link
-                  href="/dashboard/profile"
-                  className="block w-full rounded-2xl border border-purple-500/60 bg-black/40 py-4 text-center text-xl font-bold"
-                >
+                <Link href="/profile" className="block w-full rounded-2xl border border-purple-500/60 bg-black/40 py-4 text-center text-xl font-bold">
                   Edit Profile
                 </Link>
               </>
@@ -109,21 +103,20 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* CENTER */}
         <div className="relative z-10 hidden items-center justify-center lg:flex">
           <div className="absolute top-24 flex gap-8">
-            <TopNav icon="🏠" title="Home" active />
-            <TopNav icon="🎮" title="Studio" />
-            <TopNav icon="📁" title="Projects" />
-            <TopNav icon="🌐" title="World Library" />
-            <TopNav icon="📅" title="Events" />
-            <TopNav icon="✉️" title="Messages" />
+            <TopNav href="/" icon="🏠" title="Home" active />
+            <TopNav href="/studio" icon="🎮" title="Studio" />
+            <TopNav href="/projects" icon="📁" title="Projects" />
+            <TopNav href="/library" icon="🌐" title="World Library" />
+            <TopNav href="/events" icon="📅" title="Events" />
+            <TopNav href="/messages" icon="✉️" title="Messages" />
           </div>
 
           <div className="absolute left-0 top-44 space-y-4">
-            <CreateCard title="VTuber Model" button="Create" />
-            <CreateCard title="Music Video" button="Create" />
-            <CreateCard title="AI Movie" button="Create" />
+            <CreateCard href="/dashboard/avatar" title="VTuber Model" button="Create" />
+            <CreateCard href="/studio" title="Music Video" button="Create" />
+            <CreateCard href="/studio" title="AI Movie" button="Create" />
           </div>
 
           <div className="relative mt-20 flex h-[760px] w-[520px] items-center justify-center rounded-[3rem] border border-purple-500/30 bg-gradient-to-b from-purple-950/40 to-black/20 shadow-[0_0_80px_#7c3aed66]">
@@ -132,28 +125,25 @@ export default function HomePage() {
                 🐺
               </div>
 
-              <h2 className="mt-10 text-5xl font-black">
-                Your Avatar Here
-              </h2>
-
-              <p className="mt-4 text-purple-200">
-                Add your FurRig character art later.
-              </p>
+              <h2 className="mt-10 text-5xl font-black">Your Avatar Here</h2>
+              <p className="mt-4 text-purple-200">Add your FurRig character art later.</p>
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="z-10 space-y-4">
           <div className="flex justify-end">
             {isSignedIn ? (
-              <div className="flex items-center gap-4 rounded-3xl border border-purple-500/30 bg-black/40 px-5 py-3">
+              <Link
+                href="/profile"
+                className="flex items-center gap-4 rounded-3xl border border-purple-500/30 bg-black/40 px-5 py-3 hover:bg-purple-950/40"
+              >
                 <UserButton />
                 <div>
                   <p className="font-bold">Profile</p>
                   <p className="text-sm text-green-400">● Online</p>
                 </div>
-              </div>
+              </Link>
             ) : (
               <SignInButton mode="modal">
                 <button className="rounded-2xl border border-purple-500 px-6 py-3 font-bold">
@@ -163,35 +153,32 @@ export default function HomePage() {
             )}
           </div>
 
-          <Panel title="World Library" action="View All">
+          <Panel href="/library" title="World Library" action="View All">
             <div className="grid grid-cols-5 gap-3">
               {["Luna", "Crystal", "Miyu", "Shadow", "Aurora"].map((name) => (
-                <div key={name} className="text-center">
+                <Link href="/library" key={name} className="text-center">
                   <div className="h-24 rounded-2xl bg-gradient-to-br from-purple-700 to-black shadow-[0_0_20px_#7c3aed55]" />
                   <p className="mt-2 text-xs">{name}</p>
                   <p className="text-xs text-pink-400">♥ 18K</p>
-                </div>
+                </Link>
               ))}
             </div>
           </Panel>
 
-          <Panel title="Monthly Contest" action="View All">
+          <Panel href="/events" title="Monthly Contest" action="View All">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200">Create. Share. Win.</p>
-                <h3 className="mt-3 text-xl font-black">
-                  1 Month Enterprise Membership
-                </h3>
-                <button className="mt-5 rounded-xl bg-purple-600 px-8 py-3 font-bold">
+                <h3 className="mt-3 text-xl font-black">1 Month Enterprise Membership</h3>
+                <Link href="/events" className="mt-5 inline-block rounded-xl bg-purple-600 px-8 py-3 font-bold">
                   Join Now
-                </button>
+                </Link>
               </div>
-
               <div className="text-8xl">🏆</div>
             </div>
           </Panel>
 
-          <Panel title="Global Chat" action="1,248 Online">
+          <Panel href="/messages" title="Global Chat" action="1,248 Online">
             <div className="space-y-3">
               <Chat name="CyberKitten" text="That new MV is amazing! 💜" />
               <Chat name="NekoWolf" text="Glad you like it! ✨" />
@@ -204,12 +191,14 @@ export default function HomePage() {
                 placeholder="Type a message..."
                 className="flex-1 rounded-xl border border-purple-500/30 bg-black/40 px-4 py-3 outline-none"
               />
-              <button className="rounded-xl bg-purple-700 px-5">➤</button>
+              <Link href="/messages" className="rounded-xl bg-purple-700 px-5 py-3">
+                ➤
+              </Link>
             </div>
           </Panel>
 
           <div className="rounded-3xl border border-purple-500/40 bg-black/50 p-6 shadow-[0_0_40px_#7c3aed44]">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-black">Age Verification</h3>
                 <p className="mt-2 text-purple-200">
@@ -219,54 +208,55 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <button className="rounded-2xl bg-purple-600 px-8 py-4 text-xl font-black">
+              <Link href="/profile" className="rounded-2xl bg-purple-600 px-8 py-4 text-xl font-black">
                 Verify Age
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
+
+      <button
+        onClick={() => setRiggyOpen(true)}
+        className="fixed bottom-6 right-6 z-50 rounded-full bg-pink-600 p-5 text-3xl shadow-[0_0_30px_#ec4899]"
+        aria-label="Open Riggy AI Helper"
+      >
+        🐰
+      </button>
+
+      {riggyOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+          <div className="relative max-h-[90vh] overflow-auto rounded-3xl">
+            <button
+              onClick={() => setRiggyOpen(false)}
+              className="absolute right-6 top-6 z-[101] rounded-full bg-pink-600 px-4 py-2 font-black"
+            >
+              X
+            </button>
+            <RiggyAssistant />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
-function Feature({
-  icon,
-  title,
-  text,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-}) {
+function Feature({ href, icon, title, text }: { href: string; icon: string; title: string; text: string }) {
   return (
-    <div
-      id="features"
-      className="rounded-2xl border border-purple-500/20 bg-black/40 p-4 text-center shadow-[0_0_25px_#7c3aed33]"
-    >
+    <Link href={href} className="rounded-2xl border border-purple-500/20 bg-black/40 p-4 text-center shadow-[0_0_25px_#7c3aed33] hover:bg-purple-950/40">
       <div className="text-4xl">{icon}</div>
       <h3 className="mt-3 font-black">{title}</h3>
       <p className="mt-2 text-sm text-purple-200">{text}</p>
-    </div>
+    </Link>
   );
 }
 
-function TopNav({
-  icon,
-  title,
-  active,
-}: {
-  icon: string;
-  title: string;
-  active?: boolean;
-}) {
+function TopNav({ href, icon, title, active }: { href: string; icon: string; title: string; active?: boolean }) {
   return (
     <Link
-      href="/dashboard"
-      className={`rounded-2xl px-5 py-3 text-center ${
-        active
-          ? "border border-purple-500 bg-purple-900/60 shadow-[0_0_25px_#7c3aed]"
-          : ""
+      href={href}
+      className={`rounded-2xl px-5 py-3 text-center hover:bg-purple-950/40 ${
+        active ? "border border-purple-500 bg-purple-900/60 shadow-[0_0_25px_#7c3aed]" : ""
       }`}
     >
       <div className="text-2xl">{icon}</div>
@@ -275,9 +265,9 @@ function TopNav({
   );
 }
 
-function CreateCard({ title, button }: { title: string; button: string }) {
+function CreateCard({ href, title, button }: { href: string; title: string; button: string }) {
   return (
-    <div className="w-72 rounded-2xl border border-purple-500/40 bg-black/50 p-4 shadow-[0_0_30px_#7c3aed44]">
+    <Link href={href} className="block w-72 rounded-2xl border border-purple-500/40 bg-black/50 p-4 shadow-[0_0_30px_#7c3aed44] hover:bg-purple-950/40">
       <div className="mb-3 flex justify-between">
         <h3 className="font-bold">{title}</h3>
         <span>⋮</span>
@@ -287,27 +277,21 @@ function CreateCard({ title, button }: { title: string; button: string }) {
         ▶
       </div>
 
-      <button className="mt-3 w-full rounded-xl bg-purple-600 py-2 font-bold">
+      <div className="mt-3 w-full rounded-xl bg-purple-600 py-2 text-center font-bold">
         {button}
-      </button>
-    </div>
+      </div>
+    </Link>
   );
 }
 
-function Panel({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action: string;
-  children: React.ReactNode;
-}) {
+function Panel({ href, title, action, children }: { href: string; title: string; action: string; children: React.ReactNode }) {
   return (
     <div className="rounded-3xl border border-purple-500/40 bg-black/50 p-5 shadow-[0_0_40px_#7c3aed33]">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-2xl font-black">{title}</h2>
-        <button className="text-purple-300">{action}</button>
+        <Link href={href} className="text-purple-300 hover:text-purple-100">
+          {action}
+        </Link>
       </div>
       {children}
     </div>
@@ -316,12 +300,12 @@ function Panel({
 
 function Chat({ name, text }: { name: string; text: string }) {
   return (
-    <div className="flex items-center gap-3">
+    <Link href="/messages" className="flex items-center gap-3">
       <div className="h-10 w-10 rounded-full bg-purple-700" />
       <div>
         <p className="font-bold">{name}</p>
         <p className="text-sm text-purple-200">{text}</p>
       </div>
-    </div>
+    </Link>
   );
 }
