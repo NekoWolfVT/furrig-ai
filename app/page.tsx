@@ -15,7 +15,7 @@ export default function HomePage() {
   const [riggyOpen, setRiggyOpen] = useState(false);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#05000d] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-[#05000d] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#4b008855,transparent_45%)]" />
 
       <section className="relative grid min-h-screen grid-cols-1 gap-6 p-6 lg:grid-cols-[1.1fr_1.3fr_1fr]">
@@ -134,16 +134,13 @@ export default function HomePage() {
         <div className="z-10 space-y-4">
           <div className="flex justify-end">
             {isSignedIn ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-4 rounded-3xl border border-purple-500/30 bg-black/40 px-5 py-3 hover:bg-purple-950/40"
-              >
+              <div className="flex items-center gap-4 rounded-3xl border border-purple-500/30 bg-black/40 px-5 py-3">
                 <UserButton />
-                <div>
+                <Link href="/profile">
                   <p className="font-bold">Profile</p>
                   <p className="text-sm text-green-400">● Online</p>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ) : (
               <SignInButton mode="modal">
                 <button className="rounded-2xl border border-purple-500 px-6 py-3 font-bold">
@@ -218,18 +215,19 @@ export default function HomePage() {
 
       <button
         onClick={() => setRiggyOpen(true)}
-        className="fixed bottom-6 right-6 z-50 rounded-full bg-pink-600 p-5 text-3xl shadow-[0_0_30px_#ec4899]"
+        className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 rounded-full border border-pink-400 bg-black px-6 py-4 text-lg font-black text-pink-200 shadow-[0_0_40px_#ec4899]"
         aria-label="Open Riggy AI Helper"
       >
-        🐰
+        <span className="text-4xl">🐰</span>
+        Ask Riggy
       </button>
 
       {riggyOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4">
           <div className="relative max-h-[90vh] overflow-auto rounded-3xl">
             <button
               onClick={() => setRiggyOpen(false)}
-              className="absolute right-6 top-6 z-[101] rounded-full bg-pink-600 px-4 py-2 font-black"
+              className="absolute right-6 top-6 z-[10001] rounded-full bg-pink-600 px-4 py-2 font-black"
             >
               X
             </button>
