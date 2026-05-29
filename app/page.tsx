@@ -1,5 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
+
 async function checkout(plan: string) {
   const response = await fetch("/api/checkout", {
     method: "POST",
@@ -77,7 +86,62 @@ const pricingPlans = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#05000d] text-white">
-      <section className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 py-24 text-center">
+      <nav className="fixed left-0 top-0 z-50 flex w-full items-center justify-between border-b border-purple-500/20 bg-black/70 px-6 py-4 backdrop-blur">
+        <Link href="/" className="text-2xl font-black">
+          FurRig <span className="text-purple-500">AI</span>
+        </Link>
+
+        <div className="flex items-center gap-4">
+          <Link href="#features" className="hover:text-purple-300">
+            Features
+          </Link>
+
+          <Link href="#pricing" className="hover:text-purple-300">
+            Pricing
+          </Link>
+
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="rounded-xl border border-purple-500 px-4 py-2 font-bold hover:bg-purple-950">
+                Sign In
+              </button>
+            </SignInButton>
+
+            <SignUpButton mode="modal">
+              <button className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500">
+                Join Free
+              </button>
+            </SignUpButton>
+          </SignedOut>
+
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-purple-600 px-4 py-2 font-bold hover:bg-purple-500"
+            >
+              Dashboard
+            </Link>
+
+            <Link
+              href="/dashboard/profile"
+              className="rounded-xl border border-purple-500 px-4 py-2 font-bold hover:bg-purple-950"
+            >
+              Edit Profile
+            </Link>
+
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-10 w-10",
+                },
+              }}
+            />
+          </SignedIn>
+        </div>
+      </nav>
+
+      <section className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 pt-32 text-center">
         <div className="rounded-full border border-purple-500/40 bg-purple-500/10 px-5 py-2 text-sm text-purple-200">
           Welcome to FurRig AI
         </div>
@@ -93,23 +157,54 @@ export default function HomePage() {
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <a
-            href="/sign-up"
-            className="rounded-2xl bg-purple-600 px-8 py-4 font-bold hover:bg-purple-500"
-          >
-            Start Creating Free
-          </a>
+          <SignedOut>
+            <SignUpButton mode="modal">
+              <button className="rounded-2xl bg-purple-600 px-8 py-4 font-bold hover:bg-purple-500">
+                Start Creating Free
+              </button>
+            </SignUpButton>
 
-          <a
-            href="/dashboard"
-            className="rounded-2xl border border-purple-500 px-8 py-4 font-bold hover:bg-purple-950"
-          >
-            Go to Dashboard
-          </a>
+            <SignInButton mode="modal">
+              <button className="rounded-2xl border border-purple-500 px-8 py-4 font-bold hover:bg-purple-950">
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="rounded-2xl bg-purple-600 px-8 py-4 font-bold hover:bg-purple-500"
+            >
+              Open Dashboard
+            </Link>
+
+            <Link
+              href="/dashboard/profile"
+              className="rounded-2xl border border-purple-500 px-8 py-4 font-bold hover:bg-purple-950"
+            >
+              Edit My Profile
+            </Link>
+          </SignedIn>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-24">
+      <section id="features" className="mx-auto max-w-7xl px-6 py-24">
+        <h2 className="text-center text-5xl font-black">
+          What You Can Create
+        </h2>
+
+        <div className="mt-16 grid gap-8 md:grid-cols-3">
+          <Feature title="Avatar Creator" text="Create furry and VTuber characters." />
+          <Feature title="AI Rigging" text="Auto-rig avatars for movement and expressions." />
+          <Feature title="Riggy Pets" text="Make stream pets and OBS companions." />
+          <Feature title="VRChat Tools" text="Prepare avatars for VRChat-style workflows." />
+          <Feature title="Overlay Studio" text="Create starting, BRB, and ending screens." />
+          <Feature title="Creator Profiles" text="Build your FurRig creator profile." />
+        </div>
+      </section>
+
+      <section id="pricing" className="mx-auto max-w-7xl px-6 py-24">
         <div className="text-center">
           <h2 className="text-6xl font-black">
             FurRig <span className="text-purple-500">AI</span> Plans
@@ -182,5 +277,14 @@ export default function HomePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function Feature({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-3xl border border-purple-500/30 bg-white/5 p-8">
+      <h3 className="text-2xl font-black text-purple-300">{title}</h3>
+      <p className="mt-4 text-purple-100">{text}</p>
+    </div>
   );
 }
