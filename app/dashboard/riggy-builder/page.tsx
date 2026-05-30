@@ -17,7 +17,7 @@ export default function RiggyBuilderPage() {
   const { user, isSignedIn } = useUser();
 
   const [prompt, setPrompt] = useState("");
-  const [look, setLook] = useState("Cute bunny AI helper");
+  const [look, setLook] = useState("Cute animated Riggy companion");
   const [mood, setMood] = useState("happy");
   const [animating, setAnimating] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -42,9 +42,7 @@ export default function RiggyBuilderPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prompt,
-        }),
+        body: JSON.stringify({ prompt }),
       });
 
       const data = await res.json();
@@ -56,7 +54,7 @@ export default function RiggyBuilderPage() {
       }
 
       setImageUrl(data.imageUrl);
-      setSavedMessage("Riggy generated! 🐰✨");
+      setSavedMessage("Riggy generated! 🐾✨");
     } catch (error) {
       console.error(error);
       setSavedMessage("Could not connect to Riggy AI generator.");
@@ -98,7 +96,13 @@ export default function RiggyBuilderPage() {
       return;
     }
 
-    setSavedMessage("Riggy saved to Supabase! 🐰💜");
+    setSavedMessage("Riggy saved to Supabase! 💜");
+  }
+
+  function changeMood(state: string) {
+    setMood(state);
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 1200);
   }
 
   return (
@@ -116,7 +120,7 @@ export default function RiggyBuilderPage() {
 
             <p className="mt-4 max-w-2xl text-xl text-purple-200">
               Type a prompt and FurRig AI will generate a real animated-style
-              Riggy companion. Make him a dinosaur, wolf, dragon, fox, robot,
+              companion pet. Make Riggy a dinosaur, wolf, dragon, fox, robot,
               vampire, monster, or anything you imagine.
             </p>
 
@@ -163,20 +167,28 @@ export default function RiggyBuilderPage() {
               Animated Preview
             </h2>
 
-            <div className="mt-8 flex min-h-[520px] flex-col items-center justify-center rounded-[2rem] border border-purple-500/30 bg-gradient-to-b from-purple-950/40 to-black p-6">
+            <div className="mt-8 flex min-h-[520px] flex-col items-center justify-center rounded-[2rem] border border-purple-500/30 bg-gradient-to-b from-[#12001f] to-black p-6">
               <div
-                className={`flex h-72 w-72 items-center justify-center overflow-hidden rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500 to-purple-800 shadow-[0_0_80px_#ec4899] ${
-                  animating ? "animate-bounce" : "animate-pulse"
+                className={`relative flex h-96 w-96 items-center justify-center overflow-visible ${
+                  animating
+                    ? "animate-[riggyFloat_1.2s_ease-in-out_infinite]"
+                    : "animate-[riggyBreathe_3s_ease-in-out_infinite]"
                 }`}
               >
                 {imageUrl ? (
                   <img
                     src={imageUrl}
                     alt="Generated Riggy"
-                    className="h-full w-full object-cover"
+                    className="max-h-full max-w-full object-contain drop-shadow-[0_0_35px_#ec4899]"
                   />
+                ) : generating ? (
+                  <p className="text-center text-xl font-black text-white">
+                    Creating your AI Riggy...
+                  </p>
                 ) : (
-                  <span className="text-9xl">🐰</span>
+                  <p className="text-center text-xl font-black text-pink-200">
+                    No AI pet yet. Click Generate AI Riggy.
+                  </p>
                 )}
               </div>
 
@@ -190,11 +202,7 @@ export default function RiggyBuilderPage() {
                 {["idle", "happy", "talk", "sleep", "dance"].map((state) => (
                   <button
                     key={state}
-                    onClick={() => {
-                      setMood(state);
-                      setAnimating(true);
-                      setTimeout(() => setAnimating(false), 1200);
-                    }}
+                    onClick={() => changeMood(state)}
                     className="rounded-xl border border-purple-500 px-4 py-2 font-bold hover:bg-purple-950"
                   >
                     {state}
@@ -226,6 +234,34 @@ export default function RiggyBuilderPage() {
           </section>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes riggyBreathe {
+          0%,
+          100% {
+            transform: translateY(0px) scale(1);
+          }
+          50% {
+            transform: translateY(-8px) scale(1.035);
+          }
+        }
+
+        @keyframes riggyFloat {
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg) scale(1);
+          }
+          25% {
+            transform: translateY(-12px) rotate(-2deg) scale(1.04);
+          }
+          50% {
+            transform: translateY(0px) rotate(2deg) scale(1.02);
+          }
+          75% {
+            transform: translateY(-8px) rotate(-1deg) scale(1.04);
+          }
+        }
+      `}</style>
     </main>
   );
 }
