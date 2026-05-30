@@ -25,13 +25,39 @@ type RiggyEvent = {
 
 export default function RiggyLivingOverlay() {
   const [state, setState] = useState<RiggyState>("idle");
-  const [message, setMessage] = useState("Hi! I’m Riggy 💜");
+  const [message, setMessage] = useState("Loading Riggy...");
   const [x, setX] = useState(72);
   const [facing, setFacing] = useState<"left" | "right">("left");
   const [visible, setVisible] = useState(true);
   const [lastEvent, setLastEvent] = useState(0);
   const [riggyImage, setRiggyImage] = useState("");
   const awayRef = useRef(false);
+
+  useEffect(() => {
+    async function loadSavedRiggy() {
+      try {
+        const res = await fetch("/api/riggy/latest", { cache: "no-store" });
+        const data = await res.json();
+
+        if (data?.riggy?.image_url) {
+          setRiggyImage(data.riggy.image_url);
+          setMessage(`Loaded ${data.riggy.name || "your Riggy"} 💜`);
+          setState("happy");
+
+          setTimeout(() => {
+            setState("idle");
+          }, 3500);
+        } else {
+          setMessage("No saved Riggy yet 💜");
+        }
+      } catch (error) {
+        console.error(error);
+        setMessage("Could not load saved Riggy");
+      }
+    }
+
+    loadSavedRiggy();
+  }, []);
 
   useEffect(() => {
     const brain = setInterval(() => {
@@ -197,17 +223,46 @@ export default function RiggyLivingOverlay() {
 
           <div
             className={`relative h-64 w-64 ${
-              state === "idle" ? "animate-[riggyBreathe_3s_ease-in-out_infinite]" : ""
-            } ${state === "walk" ? "animate-[riggyWalk_0.8s_ease-in-out_infinite]" : ""}
-              ${state === "run" ? "animate-[riggyRun_0.45s_ease-in-out_infinite]" : ""}
-              ${state === "talk" ? "animate-[riggyTalk_0.35s_ease-in-out_infinite]" : ""}
-              ${state === "wave" ? "animate-[riggyWave_0.8s_ease-in-out_infinite]" : ""}
-              ${state === "happy" ? "animate-[riggyHappy_0.7s_ease-in-out_infinite]" : ""}
-              ${state === "sleep" ? "animate-[riggySleep_3s_ease-in-out_infinite]" : ""}
-              ${state === "dance" ? "animate-[riggyDance_0.6s_ease-in-out_infinite]" : ""}
-              ${state === "snack" ? "animate-[riggyHappy_0.8s_ease-in-out_infinite]" : ""}
-              ${state === "plushy" ? "animate-[riggyWave_0.9s_ease-in-out_infinite]" : ""}
-            `}
+              state === "idle"
+                ? "animate-[riggyBreathe_3s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "walk"
+                ? "animate-[riggyWalk_0.8s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "run"
+                ? "animate-[riggyRun_0.45s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "talk"
+                ? "animate-[riggyTalk_0.35s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "wave"
+                ? "animate-[riggyWave_0.8s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "happy"
+                ? "animate-[riggyHappy_0.7s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "sleep"
+                ? "animate-[riggySleep_3s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "dance"
+                ? "animate-[riggyDance_0.6s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "snack"
+                ? "animate-[riggyHappy_0.8s_ease-in-out_infinite]"
+                : ""
+            } ${
+              state === "plushy"
+                ? "animate-[riggyWave_0.9s_ease-in-out_infinite]"
+                : ""
+            }`}
             style={{
               transform: facing === "right" ? "scaleX(-1)" : "scaleX(1)",
             }}
