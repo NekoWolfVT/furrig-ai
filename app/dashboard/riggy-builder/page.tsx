@@ -5,6 +5,19 @@ import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 
+type RiggyFrames = {
+  idle_url?: string;
+  blink_url?: string;
+  talk_url?: string;
+  happy_url?: string;
+  sad_url?: string;
+  sleep_url?: string;
+  walk_1_url?: string;
+  walk_2_url?: string;
+  snack_url?: string;
+  plushy_url?: string;
+};
+
 const examples = [
   "Cute baby dinosaur with purple horns and bunny ears",
   "Dark vampire wolf assistant with glowing red eyes",
@@ -17,27 +30,25 @@ export default function RiggyBuilderPage() {
   const { user, isSignedIn } = useUser();
 
   const [prompt, setPrompt] = useState("");
-  const [look, setLook] = useState("Cute animated Riggy companion");
-  const [mood, setMood] = useState("happy");
-  const [animating, setAnimating] = useState(false);
+  const [look, setLook] = useState("Custom Riggy Companion");
+  const [previewState, setPreviewState] = useState<keyof RiggyFrames>("idle_url");
+  const [frames, setFrames] = useState<RiggyFrames>({});
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savedMessage, setSavedMessage] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [message, setMessage] = useState("");
 
-  async function generateRiggy() {
+  async function generatePack() {
     if (!prompt.trim()) {
-      setSavedMessage("Type a prompt first.");
+      setMessage("Type a prompt first.");
       return;
     }
 
     setGenerating(true);
-    setAnimating(true);
-    setSavedMessage("");
+    setMessage("");
     setLook(prompt);
 
     try {
-      const res = await fetch("/api/riggy/generate", {
+      const res = await fetch("/api/riggy/generate-pack", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,44 +58,56 @@ export default function RiggyBuilderPage() {
 
       const data = await res.json();
 
-      if (!res.ok || !data.imageUrl) {
+      if (!res.ok || !data?.frames) {
         console.error(data);
-        setSavedMessage("AI image generation failed.");
+        setMessage("Failed to generate Riggy animation pack.");
         return;
       }
 
-      setImageUrl(data.imageUrl);
-      setSavedMessage("Riggy generated! 🐾✨");
+      setFrames(data.frames);
+      setPreviewState("idle_url");
+      setMessage("Riggy animation pack generated! 💜");
     } catch (error) {
       console.error(error);
-      setSavedMessage("Could not connect to Riggy AI generator.");
+      setMessage("Could not connect to Riggy generator.");
     } finally {
       setGenerating(false);
-      setTimeout(() => setAnimating(false), 1200);
     }
   }
 
   async function saveRiggy() {
     if (!isSignedIn || !user?.id) {
-      setSavedMessage("Please sign in to save Riggy.");
+      setMessage("Please sign in to save Riggy.");
       return;
     }
 
-    if (!prompt.trim()) {
-      setSavedMessage("Generate a Riggy before saving.");
+    if (!frames.idle_url) {
+      setMessage("Generate a Riggy animation pack before saving.");
       return;
     }
 
     setSaving(true);
-    setSavedMessage("");
+    setMessage("");
 
     const { error } = await supabase.from("riggies").insert({
       user_id: user.id,
-      name: look || "Custom Riggy",
-      prompt: prompt || look,
-      personality: mood,
+      name: look,
+      prompt,
+      personality: "friendly",
       appearance: look,
-      image_url: imageUrl || null,
+      image_url: frames.idle_url || null,
+      idle_url: frames.idle_url || null,
+      blink_url: frames.blink_url || null,
+      talk_url: frames.talk_url || null,
+      happy_url: frames.happy_url || null,
+      sad_url: frames.sad_url || null,
+      sleep_url: frames.sleep_url || null,
+      walk_1_url: frames.walk_1_url || null,
+      walk_2_url: frames.walk_2_url || null,
+      snack_url: frames.snack_url || null,
+      plushy_url: frames.plushy_url || null,
+      model_type: "sprite_pack",
+      animation_state: "idle",
       visibility: "private",
     });
 
@@ -92,18 +115,14 @@ export default function RiggyBuilderPage() {
 
     if (error) {
       console.error(error);
-      setSavedMessage("Failed to save Riggy.");
+      setMessage("Failed to save Riggy.");
       return;
     }
 
-    setSavedMessage("Riggy saved to Supabase! 💜");
+    setMessage("Riggy animation pack saved! 🐾");
   }
 
-  function changeMood(state: string) {
-    setMood(state);
-    setAnimating(true);
-    setTimeout(() => setAnimating(false), 1200);
-  }
+  const previewImage = frames[previewState] || frames.idle_url;
 
   return (
     <main className="min-h-screen bg-[#05000d] px-6 py-10 text-white">
@@ -115,18 +134,17 @@ export default function RiggyBuilderPage() {
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1fr]">
           <section>
             <h1 className="text-6xl font-black">
-              Riggy <span className="text-pink-400">Builder</span>
+              Riggy <span className="text-pink-400">Animation Pack</span>
             </h1>
 
             <p className="mt-4 max-w-2xl text-xl text-purple-200">
-              Type a prompt and FurRig AI will generate a real animated-style
-              companion pet. Make Riggy a dinosaur, wolf, dragon, fox, robot,
-              vampire, monster, or anything you imagine.
+              Generate a full FurRig pet pack: idle, blink, talk, happy, sad,
+              sleep, walk, snack, and plushy frames.
             </p>
 
             <div className="mt-8 rounded-3xl border border-purple-500/30 bg-black/50 p-6">
               <label className="text-xl font-black text-pink-300">
-                Customize Riggy with a prompt
+                Describe your Riggy
               </label>
 
               <textarea
@@ -137,11 +155,11 @@ export default function RiggyBuilderPage() {
               />
 
               <button
-                onClick={generateRiggy}
+                onClick={generatePack}
                 disabled={generating}
                 className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 text-xl font-black shadow-[0_0_30px_#ec4899] disabled:opacity-50"
               >
-                {generating ? "Generating AI Riggy..." : "Generate AI Riggy ✨"}
+                {generating ? "Generating Animation Pack..." : "Generate Animation Pack ✨"}
               </button>
             </div>
 
@@ -164,48 +182,47 @@ export default function RiggyBuilderPage() {
 
           <section className="rounded-[2rem] border border-pink-500/40 bg-black/50 p-8 shadow-[0_0_60px_#ec489944]">
             <h2 className="text-3xl font-black text-pink-300">
-              Animated Preview
+              Riggy Pack Preview
             </h2>
 
             <div className="mt-8 flex min-h-[520px] flex-col items-center justify-center rounded-[2rem] border border-purple-500/30 bg-gradient-to-b from-[#12001f] to-black p-6">
-              <div
-                className={`relative flex h-96 w-96 items-center justify-center overflow-visible ${
-                  animating
-                    ? "animate-[riggyFloat_1.2s_ease-in-out_infinite]"
-                    : "animate-[riggyBreathe_3s_ease-in-out_infinite]"
-                }`}
-              >
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="Generated Riggy"
-                    className="max-h-full max-w-full object-contain drop-shadow-[0_0_35px_#ec4899]"
-                  />
-                ) : generating ? (
-                  <p className="text-center text-xl font-black text-white">
-                    Creating your AI Riggy...
-                  </p>
-                ) : (
-                  <p className="text-center text-xl font-black text-pink-200">
-                    No AI pet yet. Click Generate AI Riggy.
-                  </p>
-                )}
-              </div>
+              {previewImage ? (
+                <img
+                  src={previewImage}
+                  alt="Riggy Preview"
+                  className="max-h-80 max-w-full object-contain drop-shadow-[0_0_35px_#ec4899]"
+                />
+              ) : (
+                <p className="text-center text-xl font-black text-pink-200">
+                  No pack yet. Generate a Riggy animation pack.
+                </p>
+              )}
 
               <h3 className="mt-8 text-center text-3xl font-black">{look}</h3>
 
-              <p className="mt-3 text-center text-purple-200">
-                Animation state: {mood}
-              </p>
-
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                {["idle", "happy", "talk", "sleep", "dance"].map((state) => (
+                {[
+                  ["idle_url", "Idle"],
+                  ["blink_url", "Blink"],
+                  ["talk_url", "Talk"],
+                  ["happy_url", "Happy"],
+                  ["sad_url", "Sad"],
+                  ["sleep_url", "Sleep"],
+                  ["walk_1_url", "Walk 1"],
+                  ["walk_2_url", "Walk 2"],
+                  ["snack_url", "Snack"],
+                  ["plushy_url", "Plushy"],
+                ].map(([key, label]) => (
                   <button
-                    key={state}
-                    onClick={() => changeMood(state)}
-                    className="rounded-xl border border-purple-500 px-4 py-2 font-bold hover:bg-purple-950"
+                    key={key}
+                    onClick={() => setPreviewState(key as keyof RiggyFrames)}
+                    className={`rounded-xl border px-4 py-2 font-bold ${
+                      previewState === key
+                        ? "border-pink-400 bg-pink-950/50 text-pink-200"
+                        : "border-purple-500 hover:bg-purple-950"
+                    }`}
                   >
-                    {state}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -217,51 +234,23 @@ export default function RiggyBuilderPage() {
                 disabled={saving}
                 className="rounded-2xl bg-purple-600 py-4 font-black hover:bg-purple-500 disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save Riggy"}
+                {saving ? "Saving..." : "Save Riggy Pack"}
               </button>
 
               <Link
                 href="/overlay/pet"
                 className="rounded-2xl border border-pink-500 py-4 text-center font-black hover:bg-pink-950/40"
               >
-                Test OBS Overlay
+                Test OBS Pet
               </Link>
             </div>
 
-            {savedMessage && (
-              <p className="mt-4 text-center text-pink-300">{savedMessage}</p>
+            {message && (
+              <p className="mt-4 text-center text-pink-300">{message}</p>
             )}
           </section>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes riggyBreathe {
-          0%,
-          100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-8px) scale(1.035);
-          }
-        }
-
-        @keyframes riggyFloat {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg) scale(1);
-          }
-          25% {
-            transform: translateY(-12px) rotate(-2deg) scale(1.04);
-          }
-          50% {
-            transform: translateY(0px) rotate(2deg) scale(1.02);
-          }
-          75% {
-            transform: translateY(-8px) rotate(-1deg) scale(1.04);
-          }
-        }
-      `}</style>
     </main>
   );
 }
