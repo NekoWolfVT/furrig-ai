@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import { supabase } from "@/lib/supabase";
 
 const examples = [
   "Cute cyber bunny streamer with neon pink ears",
@@ -12,21 +14,70 @@ const examples = [
 ];
 
 export default function RiggyBuilderPage() {
+  const { user, isSignedIn } = useUser();
+
   const [prompt, setPrompt] = useState("");
   const [look, setLook] = useState("Cute bunny AI helper");
   const [mood, setMood] = useState("happy");
   const [animating, setAnimating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedMessage, setSavedMessage] = useState("");
 
   function generateRiggy() {
     if (!prompt.trim()) return;
 
     setLook(prompt);
     setAnimating(true);
+    setSavedMessage("");
 
     setTimeout(() => {
       setAnimating(false);
     }, 1800);
   }
+
+  async function saveRiggy() {
+    if (!isSignedIn || !user?.id) {
+      setSavedMessage("Please sign in to save Riggy.");
+      return;
+    }
+
+    setSaving(true);
+    setSavedMessage("");
+
+    const { error } = await supabase.from("riggies").insert({
+      user_id: user.id,
+      name: look || "Custom Riggy",
+      prompt: prompt || look,
+      personality: mood,
+      appearance: look,
+      image_url: null,
+      visibility: "private",
+    });
+
+    setSaving(false);
+
+    if (error) {
+      console.error(error);
+      setSavedMessage("Failed to save Riggy. Check Supabase RLS policies.");
+      return;
+    }
+
+    setSavedMessage("Riggy saved! 🐰✨");
+  }
+
+  const riggyIcon = look.toLowerCase().includes("wolf")
+    ? "🐺"
+    : look.toLowerCase().includes("dragon")
+    ? "🐉"
+    : look.toLowerCase().includes("fox")
+    ? "🦊"
+    : look.toLowerCase().includes("cat")
+    ? "🐱"
+    : look.toLowerCase().includes("robot")
+    ? "🤖"
+    : look.toLowerCase().includes("vampire")
+    ? "🧛"
+    : "🐰";
 
   return (
     <main className="min-h-screen bg-[#05000d] px-6 py-10 text-white">
@@ -94,20 +145,10 @@ export default function RiggyBuilderPage() {
                   animating ? "animate-bounce" : "animate-pulse"
                 }`}
               >
-                {look.toLowerCase().includes("wolf")
-                  ? "🐺"
-                  : look.toLowerCase().includes("dragon")
-                  ? "🐉"
-                  : look.toLowerCase().includes("fox")
-                  ? "🦊"
-                  : look.toLowerCase().includes("cat")
-                  ? "🐱"
-                  : "🐰"}
+                {riggyIcon}
               </div>
 
-              <h3 className="mt-8 text-center text-3xl font-black">
-                {look}
-              </h3>
+              <h3 className="mt-8 text-center text-3xl font-black">{look}</h3>
 
               <p className="mt-3 text-center text-purple-200">
                 Animation state: {mood}
@@ -131,8 +172,12 @@ export default function RiggyBuilderPage() {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <button className="rounded-2xl bg-purple-600 py-4 font-black hover:bg-purple-500">
-                Save Riggy
+              <button
+                onClick={saveRiggy}
+                disabled={saving}
+                className="rounded-2xl bg-purple-600 py-4 font-black hover:bg-purple-500 disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save Riggy"}
               </button>
 
               <Link
@@ -142,6 +187,10 @@ export default function RiggyBuilderPage() {
                 Test OBS Overlay
               </Link>
             </div>
+
+            {savedMessage && (
+              <p className="mt-4 text-center text-pink-300">{savedMessage}</p>
+            )}
           </section>
         </div>
       </div>
