@@ -23,11 +23,16 @@ export default function ProfilePage() {
     async function loadProfile() {
       if (!user?.id) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
-        .single();
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
 
       if (data) {
         setDisplayName(data.display_name || "");
@@ -50,25 +55,30 @@ export default function ProfilePage() {
     setSaving(true);
     setSaved("");
 
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id,
-      username: user.username || user.firstName || "creator",
-      display_name: displayName,
-      bio,
-      avatar_url: user.imageUrl,
-      banner_url: null,
-      membership,
-      role: "creator",
-      stream_url: streamUrl,
-      platform,
-      updated_at: new Date().toISOString(),
-    });
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        user_id: user.id,
+        username: user.username || user.firstName || "creator",
+        display_name: displayName,
+        bio,
+        avatar_url: user.imageUrl,
+        banner_url: null,
+        membership,
+        role: "creator",
+        stream_url: streamUrl,
+        platform,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "user_id",
+      }
+    );
 
     setSaving(false);
 
     if (error) {
-      setSaved("Could not save profile.");
       console.error(error);
+      setSaved("Could not save profile.");
       return;
     }
 
@@ -102,14 +112,14 @@ export default function ProfilePage() {
         <div className="-mt-20 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="flex items-end gap-6">
             <img
-              src={user?.imageUrl}
+              src={user.imageUrl}
               alt="Profile"
               className="h-40 w-40 rounded-full border-8 border-[#05000d] object-cover shadow-[0_0_40px_#7c3aed]"
             />
 
             <div className="mb-4">
               <h1 className="text-5xl font-black">
-                {displayName || user?.username || user?.firstName || "FurRig Creator"}
+                {displayName || user.username || user.firstName || "FurRig Creator"}
               </h1>
               <p className="mt-2 text-purple-200">{membership} Creator • Online</p>
             </div>
