@@ -6,11 +6,11 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 
 const examples = [
-  "Cute cyber bunny streamer with neon pink ears",
+  "Cute baby dinosaur with purple horns and bunny ears",
   "Dark vampire wolf assistant with glowing red eyes",
   "Tiny dragon companion with gold horns",
   "Anime fox helper with floating magic rings",
-  "Robot cat VTuber assistant with hologram tail",
+  "Robot bat with glowing blue eyes and tiny wings",
 ];
 
 export default function RiggyBuilderPage() {
@@ -20,24 +20,60 @@ export default function RiggyBuilderPage() {
   const [look, setLook] = useState("Cute bunny AI helper");
   const [mood, setMood] = useState("happy");
   const [animating, setAnimating] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
-  function generateRiggy() {
-    if (!prompt.trim()) return;
+  async function generateRiggy() {
+    if (!prompt.trim()) {
+      setSavedMessage("Type a prompt first.");
+      return;
+    }
 
-    setLook(prompt);
+    setGenerating(true);
     setAnimating(true);
     setSavedMessage("");
+    setLook(prompt);
 
-    setTimeout(() => {
-      setAnimating(false);
-    }, 1800);
+    try {
+      const res = await fetch("/api/riggy/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.imageUrl) {
+        console.error(data);
+        setSavedMessage("AI image generation failed.");
+        return;
+      }
+
+      setImageUrl(data.imageUrl);
+      setSavedMessage("Riggy generated! 🐰✨");
+    } catch (error) {
+      console.error(error);
+      setSavedMessage("Could not connect to Riggy AI generator.");
+    } finally {
+      setGenerating(false);
+      setTimeout(() => setAnimating(false), 1200);
+    }
   }
 
   async function saveRiggy() {
     if (!isSignedIn || !user?.id) {
       setSavedMessage("Please sign in to save Riggy.");
+      return;
+    }
+
+    if (!prompt.trim()) {
+      setSavedMessage("Generate a Riggy before saving.");
       return;
     }
 
@@ -50,7 +86,7 @@ export default function RiggyBuilderPage() {
       prompt: prompt || look,
       personality: mood,
       appearance: look,
-      image_url: null,
+      image_url: imageUrl || null,
       visibility: "private",
     });
 
@@ -58,32 +94,18 @@ export default function RiggyBuilderPage() {
 
     if (error) {
       console.error(error);
-      setSavedMessage("Failed to save Riggy. Check Supabase RLS policies.");
+      setSavedMessage("Failed to save Riggy.");
       return;
     }
 
-    setSavedMessage("Riggy saved! 🐰✨");
+    setSavedMessage("Riggy saved to Supabase! 🐰💜");
   }
-
-  const riggyIcon = look.toLowerCase().includes("wolf")
-    ? "🐺"
-    : look.toLowerCase().includes("dragon")
-    ? "🐉"
-    : look.toLowerCase().includes("fox")
-    ? "🦊"
-    : look.toLowerCase().includes("cat")
-    ? "🐱"
-    : look.toLowerCase().includes("robot")
-    ? "🤖"
-    : look.toLowerCase().includes("vampire")
-    ? "🧛"
-    : "🐰";
 
   return (
     <main className="min-h-screen bg-[#05000d] px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
-        <Link href="/" className="text-purple-300 hover:text-purple-200">
-          ← Back Home
+        <Link href="/dashboard" className="text-purple-300 hover:text-purple-200">
+          ← Back Dashboard
         </Link>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1fr]">
@@ -93,8 +115,9 @@ export default function RiggyBuilderPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-xl text-purple-200">
-              Type a prompt to change how Riggy looks, acts, and animates.
-              Make him a bunny, wolf, dragon, fox, robot, vampire, anything.
+              Type a prompt and FurRig AI will generate a real animated-style
+              Riggy companion. Make him a dinosaur, wolf, dragon, fox, robot,
+              vampire, monster, or anything you imagine.
             </p>
 
             <div className="mt-8 rounded-3xl border border-purple-500/30 bg-black/50 p-6">
@@ -105,15 +128,16 @@ export default function RiggyBuilderPage() {
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Example: Make Riggy a gothic vampire wolf with red eyes and a black cloak..."
+                placeholder="Example: cute baby dinosaur with purple horns and bunny ears..."
                 className="mt-4 h-40 w-full rounded-2xl border border-purple-500/30 bg-black/60 p-5 text-white outline-none focus:border-pink-400"
               />
 
               <button
                 onClick={generateRiggy}
-                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 text-xl font-black shadow-[0_0_30px_#ec4899]"
+                disabled={generating}
+                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 text-xl font-black shadow-[0_0_30px_#ec4899] disabled:opacity-50"
               >
-                Generate Riggy Look ✨
+                {generating ? "Generating AI Riggy..." : "Generate AI Riggy ✨"}
               </button>
             </div>
 
@@ -139,13 +163,21 @@ export default function RiggyBuilderPage() {
               Animated Preview
             </h2>
 
-            <div className="mt-8 flex min-h-[520px] flex-col items-center justify-center rounded-[2rem] border border-purple-500/30 bg-gradient-to-b from-purple-950/40 to-black">
+            <div className="mt-8 flex min-h-[520px] flex-col items-center justify-center rounded-[2rem] border border-purple-500/30 bg-gradient-to-b from-purple-950/40 to-black p-6">
               <div
-                className={`flex h-72 w-72 items-center justify-center rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500 to-purple-800 text-9xl shadow-[0_0_80px_#ec4899] ${
+                className={`flex h-72 w-72 items-center justify-center overflow-hidden rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500 to-purple-800 shadow-[0_0_80px_#ec4899] ${
                   animating ? "animate-bounce" : "animate-pulse"
                 }`}
               >
-                {riggyIcon}
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Generated Riggy"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-9xl">🐰</span>
+                )}
               </div>
 
               <h3 className="mt-8 text-center text-3xl font-black">{look}</h3>
