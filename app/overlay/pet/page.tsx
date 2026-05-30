@@ -4,13 +4,12 @@ import { useEffect, useRef, useState } from "react";
 
 type RiggyState =
   | "idle"
+  | "blink"
   | "walk"
-  | "run"
   | "talk"
-  | "wave"
   | "happy"
+  | "sad"
   | "sleep"
-  | "dance"
   | "snack"
   | "plushy"
   | "away";
@@ -19,62 +18,83 @@ type RiggyEvent = {
   type?: string;
   viewer?: string;
   message?: string;
-  imageUrl?: string;
   timestamp?: number;
 };
 
-export default function RiggyLivingOverlay() {
+const PETS = {
+  idle: "/pets/riggy_idle.png",
+  blink: "/pets/riggy_blink.png",
+  talk: "/pets/riggy_talk.png",
+  happy: "/pets/riggy_happy.png",
+  sad: "/pets/riggy_sad.png",
+  sleep: "/pets/riggy_sleep.png",
+  walk1: "/pets/riggy_walk_1.png",
+  walk2: "/pets/riggy_walk_2.png",
+};
+
+export default function RiggyPetOverlay() {
   const [state, setState] = useState<RiggyState>("idle");
-  const [message, setMessage] = useState("Loading Riggy...");
-  const [x, setX] = useState(72);
+  const [message, setMessage] = useState("Hi! I’m Riggy 💜");
+  const [x, setX] = useState(70);
   const [facing, setFacing] = useState<"left" | "right">("left");
   const [visible, setVisible] = useState(true);
+  const [walkFrame, setWalkFrame] = useState(1);
+  const [talkFrame, setTalkFrame] = useState(false);
   const [lastEvent, setLastEvent] = useState(0);
-  const [riggyImage, setRiggyImage] = useState("");
+
   const awayRef = useRef(false);
+  const busyRef = useRef(false);
 
   useEffect(() => {
-    async function loadSavedRiggy() {
-      try {
-        const res = await fetch("/api/riggy/latest", { cache: "no-store" });
-        const data = await res.json();
+    const blinkTimer = setInterval(() => {
+      if (busyRef.current || awayRef.current) return;
 
-        if (data?.riggy?.image_url) {
-          setRiggyImage(data.riggy.image_url);
-          setMessage(`Loaded ${data.riggy.name || "your Riggy"} 💜`);
-          setState("happy");
+      setState("blink");
 
-          setTimeout(() => {
-            setState("idle");
-          }, 3500);
-        } else {
-          setMessage("No saved Riggy yet 💜");
-        }
-      } catch (error) {
-        console.error(error);
-        setMessage("Could not load saved Riggy");
-      }
-    }
+      setTimeout(() => {
+        setState("idle");
+      }, 220);
+    }, Math.floor(Math.random() * 6000) + 5000);
 
-    loadSavedRiggy();
+    return () => clearInterval(blinkTimer);
   }, []);
 
   useEffect(() => {
     const brain = setInterval(() => {
-      if (state === "talk" || state === "wave" || state === "run") return;
+      if (busyRef.current || awayRef.current) return;
 
       const roll = Math.random();
 
-      if (roll < 0.25) walkAround();
-      else if (roll < 0.38) doAction("happy", "Hehe! I’m still here 💜");
-      else if (roll < 0.5) doAction("dance", "Tiny dance break! ✨");
-      else if (roll < 0.62) doAction("snack", "I found snacks! 🍪");
-      else if (roll < 0.72) doAction("plushy", "Look! My favourite plushy! 🧸");
-      else if (roll < 0.8) leaveScreen();
+      if (roll < 0.35) walkAround();
+      else if (roll < 0.5) happy("Hehe! I’m watching the stream 💜");
+      else if (roll < 0.62) snack();
+      else if (roll < 0.74) plushy();
+      else if (roll < 0.84) sleep();
+      else if (roll < 0.92) leaveScreen();
       else setState("idle");
-    }, 9000);
+    }, 8500);
 
     return () => clearInterval(brain);
+  }, [x]);
+
+  useEffect(() => {
+    const walkAnim = setInterval(() => {
+      if (state === "walk") {
+        setWalkFrame((frame) => (frame === 1 ? 2 : 1));
+      }
+    }, 260);
+
+    return () => clearInterval(walkAnim);
+  }, [state]);
+
+  useEffect(() => {
+    const talkAnim = setInterval(() => {
+      if (state === "talk") {
+        setTalkFrame((frame) => !frame);
+      }
+    }, 260);
+
+    return () => clearInterval(talkAnim);
   }, [state]);
 
   useEffect(() => {
@@ -87,10 +107,6 @@ export default function RiggyLivingOverlay() {
 
         setLastEvent(data.timestamp);
 
-        if (data.imageUrl) {
-          setRiggyImage(data.imageUrl);
-        }
-
         if (data.type === "new_viewer") {
           welcomeViewer(data.viewer || "new friend");
           return;
@@ -101,13 +117,18 @@ export default function RiggyLivingOverlay() {
           return;
         }
 
-        if (data.type === "plushy") {
-          doAction("plushy", data.message || "I brought my plushy! 🧸");
+        if (data.type === "sad") {
+          sad(data.message || "Aww... Riggy feels shy.");
           return;
         }
 
         if (data.type === "snack") {
-          doAction("snack", data.message || "Snack delivery! 🍪");
+          snack();
+          return;
+        }
+
+        if (data.type === "plushy") {
+          plushy();
           return;
         }
 
@@ -120,7 +141,21 @@ export default function RiggyLivingOverlay() {
     return () => clearInterval(eventPoll);
   }, [lastEvent]);
 
+  function currentImage() {
+    if (state === "blink") return PETS.blink;
+    if (state === "talk") return talkFrame ? PETS.talk : PETS.idle;
+    if (state === "happy") return PETS.happy;
+    if (state === "sad") return PETS.sad;
+    if (state === "sleep") return PETS.sleep;
+    if (state === "walk") return walkFrame === 1 ? PETS.walk1 : PETS.walk2;
+    if (state === "snack") return PETS.happy;
+    if (state === "plushy") return PETS.happy;
+    return PETS.idle;
+  }
+
   function walkAround() {
+    busyRef.current = true;
+
     const nextX = Math.floor(Math.random() * 70) + 10;
     setFacing(nextX > x ? "right" : "left");
     setState("walk");
@@ -128,19 +163,93 @@ export default function RiggyLivingOverlay() {
 
     setTimeout(() => {
       setState("idle");
-    }, 3500);
+      busyRef.current = false;
+    }, 4200);
+  }
+
+  function talk(text: string) {
+    busyRef.current = true;
+    awayRef.current = false;
+    setVisible(true);
+    setState("talk");
+    setMessage(text);
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 6000);
+  }
+
+  function happy(text: string) {
+    busyRef.current = true;
+    setVisible(true);
+    setState("happy");
+    setMessage(text);
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 4200);
+  }
+
+  function sad(text: string) {
+    busyRef.current = true;
+    setVisible(true);
+    setState("sad");
+    setMessage(text);
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 4500);
+  }
+
+  function snack() {
+    busyRef.current = true;
+    setVisible(true);
+    setState("snack");
+    setMessage("Snack time! I found a cookie 🍪");
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 5200);
+  }
+
+  function plushy() {
+    busyRef.current = true;
+    setVisible(true);
+    setState("plushy");
+    setMessage("Look! My favourite plushy! 🧸");
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 5200);
+  }
+
+  function sleep() {
+    busyRef.current = true;
+    setState("sleep");
+    setMessage("Zzz...");
+
+    setTimeout(() => {
+      setState("idle");
+      busyRef.current = false;
+    }, 6500);
   }
 
   function leaveScreen() {
+    busyRef.current = true;
     awayRef.current = true;
-    setState("away");
-    setMessage("I’m going to grab snacks... 🍪");
+    setState("walk");
+    setMessage("I’m going to grab snacks...");
     setFacing("right");
-    setX(112);
+    setX(116);
 
     setTimeout(() => {
       setVisible(false);
-    }, 1800);
+    }, 2200);
 
     setTimeout(() => {
       if (!awayRef.current) return;
@@ -151,18 +260,14 @@ export default function RiggyLivingOverlay() {
   function returnFromOffscreen(text: string) {
     awayRef.current = false;
     setVisible(true);
-    setState("run");
+    setState("walk");
     setFacing("left");
     setX(78);
     setMessage(text);
 
     setTimeout(() => {
-      setState("talk");
-    }, 1200);
-
-    setTimeout(() => {
-      setState("idle");
-    }, 5500);
+      talk(text);
+    }, 2500);
   }
 
   function welcomeViewer(viewer: string) {
@@ -171,41 +276,26 @@ export default function RiggyLivingOverlay() {
       return;
     }
 
-    setState("wave");
+    busyRef.current = true;
+    setState("happy");
     setMessage(`Welcome ${viewer}! I’m Riggy! 💜`);
 
     setTimeout(() => {
-      setState("idle");
-    }, 5000);
-  }
-
-  function talk(text: string) {
-    setVisible(true);
-    awayRef.current = false;
-    setState("talk");
-    setMessage(text);
+      setState("talk");
+    }, 1000);
 
     setTimeout(() => {
       setState("idle");
-    }, 6500);
-  }
-
-  function doAction(nextState: RiggyState, text: string) {
-    setVisible(true);
-    awayRef.current = false;
-    setState(nextState);
-    setMessage(text);
-
-    setTimeout(() => {
-      setState("idle");
-    }, 6000);
+      busyRef.current = false;
+    }, 5500);
   }
 
   const showBubble =
     visible &&
-    state !== "sleep" &&
     state !== "idle" &&
+    state !== "blink" &&
     state !== "walk" &&
+    state !== "sleep" &&
     state !== "away";
 
   return (
@@ -216,87 +306,47 @@ export default function RiggyLivingOverlay() {
           style={{ left: `${x}%`, transform: "translateX(-50%)" }}
         >
           {showBubble && (
-            <div className="mb-4 max-w-[420px] rounded-3xl border border-pink-400 bg-black/85 px-6 py-4 text-center text-xl font-black text-white shadow-[0_0_35px_#ec4899]">
+            <div className="mb-3 max-w-[420px] rounded-3xl border border-pink-400 bg-black/85 px-6 py-4 text-center text-xl font-black text-white shadow-[0_0_35px_#ec4899]">
               {message}
             </div>
           )}
 
           <div
             className={`relative h-64 w-64 ${
-              state === "idle"
-                ? "animate-[riggyBreathe_3s_ease-in-out_infinite]"
+              state === "idle" ? "animate-[riggyBreathe_3s_ease-in-out_infinite]" : ""
+            } ${
+              state === "happy" || state === "snack" || state === "plushy"
+                ? "animate-[riggyHappy_0.75s_ease-in-out_infinite]"
                 : ""
             } ${
-              state === "walk"
-                ? "animate-[riggyWalk_0.8s_ease-in-out_infinite]"
-                : ""
+              state === "sad" ? "animate-[riggySad_2s_ease-in-out_infinite]" : ""
             } ${
-              state === "run"
-                ? "animate-[riggyRun_0.45s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "talk"
-                ? "animate-[riggyTalk_0.35s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "wave"
-                ? "animate-[riggyWave_0.8s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "happy"
-                ? "animate-[riggyHappy_0.7s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "sleep"
-                ? "animate-[riggySleep_3s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "dance"
-                ? "animate-[riggyDance_0.6s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "snack"
-                ? "animate-[riggyHappy_0.8s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "plushy"
-                ? "animate-[riggyWave_0.9s_ease-in-out_infinite]"
-                : ""
+              state === "sleep" ? "animate-[riggySleep_3s_ease-in-out_infinite]" : ""
             }`}
             style={{
               transform: facing === "right" ? "scaleX(-1)" : "scaleX(1)",
             }}
           >
-            {riggyImage ? (
-              <img
-                src={riggyImage}
-                alt="Riggy"
-                className="h-full w-full object-contain drop-shadow-[0_0_35px_#ec4899]"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-9xl drop-shadow-[0_0_35px_#ec4899]">
-                🐰
-              </div>
-            )}
-
-            {state === "talk" && (
-              <div className="absolute left-1/2 top-[54%] h-5 w-14 -translate-x-1/2 rounded-full bg-black/70 animate-[riggyMouth_0.25s_ease-in-out_infinite]" />
-            )}
+            <img
+              src={currentImage()}
+              alt="Riggy"
+              className="h-full w-full object-contain drop-shadow-[0_0_35px_#ec4899]"
+            />
 
             {state === "snack" && (
-              <div className="absolute -right-4 bottom-12 text-5xl animate-bounce">
+              <div className="absolute -right-4 bottom-10 text-5xl animate-bounce">
                 🍪
               </div>
             )}
 
             {state === "plushy" && (
-              <div className="absolute -right-8 bottom-10 text-6xl animate-[riggyBreathe_1.4s_ease-in-out_infinite]">
+              <div className="absolute -right-8 bottom-8 text-6xl animate-[riggyBreathe_1.4s_ease-in-out_infinite]">
                 🧸
               </div>
             )}
 
             {state === "sleep" && (
-              <div className="absolute -right-2 top-4 text-5xl animate-pulse">
+              <div className="absolute -right-2 top-4 text-5xl animate-pulse text-white">
                 Zzz
               </div>
             )}
@@ -319,58 +369,6 @@ export default function RiggyLivingOverlay() {
           }
         }
 
-        @keyframes riggyWalk {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(-2deg);
-          }
-          50% {
-            transform: translateY(-10px) rotate(2deg);
-          }
-        }
-
-        @keyframes riggyRun {
-          0%,
-          100% {
-            transform: translateY(0px) scale(1.03);
-          }
-          50% {
-            transform: translateY(-18px) scale(1.08);
-          }
-        }
-
-        @keyframes riggyTalk {
-          0%,
-          100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-4px) scale(1.025);
-          }
-        }
-
-        @keyframes riggyMouth {
-          0%,
-          100% {
-            transform: translateX(-50%) scaleY(0.35);
-            opacity: 0.55;
-          }
-          50% {
-            transform: translateX(-50%) scaleY(1.15);
-            opacity: 1;
-          }
-        }
-
-        @keyframes riggyWave {
-          0%,
-          100% {
-            transform: rotate(-3deg) translateY(0px);
-          }
-          50% {
-            transform: rotate(5deg) translateY(-8px);
-          }
-        }
-
         @keyframes riggyHappy {
           0%,
           100% {
@@ -381,6 +379,18 @@ export default function RiggyLivingOverlay() {
           }
         }
 
+        @keyframes riggySad {
+          0%,
+          100% {
+            transform: translateY(0px) rotate(-2deg) scale(0.96);
+            opacity: 0.95;
+          }
+          50% {
+            transform: translateY(3px) rotate(2deg) scale(0.94);
+            opacity: 0.85;
+          }
+        }
+
         @keyframes riggySleep {
           0%,
           100% {
@@ -388,22 +398,6 @@ export default function RiggyLivingOverlay() {
           }
           50% {
             transform: translateY(3px) rotate(-4deg) scale(1);
-          }
-        }
-
-        @keyframes riggyDance {
-          0%,
-          100% {
-            transform: rotate(-7deg) translateY(0px) scale(1.03);
-          }
-          25% {
-            transform: rotate(7deg) translateY(-10px) scale(1.08);
-          }
-          50% {
-            transform: rotate(-4deg) translateY(0px) scale(1.05);
-          }
-          75% {
-            transform: rotate(7deg) translateY(-10px) scale(1.08);
           }
         }
       `}</style>
