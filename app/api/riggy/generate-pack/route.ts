@@ -1,20 +1,10 @@
 import { NextResponse } from "next/server";
 
-type RiggyFrameKey =
-  | "idle_url"
-  | "talk_url"
-  | "walk_1_url"
-  | "walk_2_url";
+type RiggyFrameKey = "idle_url";
 
 const framePrompts: Record<RiggyFrameKey, string> = {
   idle_url:
     "idle pose, standing still, cute friendly expression, full body, transparent background",
-  talk_url:
-    "same character, mouth open talking, cheerful expression, full body, transparent background",
-  walk_1_url:
-    "same character walking pose frame 1, one foot forward, full body, transparent background",
-  walk_2_url:
-    "same character walking pose frame 2, opposite foot forward, full body, transparent background",
 };
 
 async function generateImage(prompt: string) {
@@ -25,8 +15,10 @@ async function generateImage(prompt: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-image-1",
+      model: "dall-e-3",
       size: "1024x1024",
+      quality: "standard",
+      n: 1,
       prompt,
     }),
   });
@@ -38,13 +30,13 @@ async function generateImage(prompt: string) {
     throw new Error(data?.error?.message || "Image generation failed");
   }
 
-  const imageBase64 = data.data?.[0]?.b64_json;
+  const imageUrl = data.data?.[0]?.url;
 
-  if (!imageBase64) {
-    throw new Error("No image returned");
+  if (!imageUrl) {
+    throw new Error("No image URL returned");
   }
 
-  return `data:image/png;base64,${imageBase64}`;
+  return imageUrl;
 }
 
 export async function POST(req: Request) {
@@ -63,19 +55,17 @@ export async function POST(req: Request) {
     }
 
     const baseStyle = `
-Create a matching 4-frame animation pack for one FurRig AI mascot.
+Create one FurRig AI mascot.
 
 Character description:
 ${prompt}
 
 Important:
-- Keep the SAME character design in every frame.
-- Same colors, same species, same face, same body shape.
-- Cute 2D mascot style.
-- Full body character.
-- Transparent background or plain white background.
-- No text, no logo, no UI.
-- OBS stream pet style.
+- Cute 2D mascot style
+- Full body character
+- OBS stream pet style
+- No text, no logo, no UI
+- Simple clean background
 `;
 
     const result: Record<string, string | null> = {
@@ -112,7 +102,7 @@ Important:
         error:
           error instanceof Error
             ? error.message
-            : "Riggy animation pack generation failed",
+            : "Riggy generation failed",
       },
       { status: 500 }
     );
