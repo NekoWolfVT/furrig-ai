@@ -15,7 +15,7 @@ type RiggyState =
   | "away";
 
 type RiggyEvent = {
-  type?: string;
+  mood?: string;
   viewer?: string;
   message?: string;
   timestamp?: number;
@@ -48,13 +48,9 @@ export default function RiggyPetOverlay() {
   useEffect(() => {
     const blinkTimer = setInterval(() => {
       if (busyRef.current || awayRef.current) return;
-
       setState("blink");
-
-      setTimeout(() => {
-        setState("idle");
-      }, 220);
-    }, Math.floor(Math.random() * 6000) + 5000);
+      setTimeout(() => setState("idle"), 220);
+    }, 7000);
 
     return () => clearInterval(blinkTimer);
   }, []);
@@ -107,27 +103,32 @@ export default function RiggyPetOverlay() {
 
         setLastEvent(data.timestamp);
 
-        if (data.type === "new_viewer") {
-          welcomeViewer(data.viewer || "new friend");
-          return;
-        }
-
-        if (data.type === "talk") {
+        if (data.mood === "talk") {
           talk(data.message || "Riggy is here!");
           return;
         }
 
-        if (data.type === "sad") {
+        if (data.mood === "happy") {
+          happy(data.message || "Yay! Riggy is excited! 💜");
+          return;
+        }
+
+        if (data.mood === "sad") {
           sad(data.message || "Aww... Riggy feels shy.");
           return;
         }
 
-        if (data.type === "snack") {
+        if (data.mood === "sleep") {
+          sleep();
+          return;
+        }
+
+        if (data.mood === "snack") {
           snack();
           return;
         }
 
-        if (data.type === "plushy") {
+        if (data.mood === "plushy") {
           plushy();
           return;
         }
@@ -247,9 +248,7 @@ export default function RiggyPetOverlay() {
     setFacing("right");
     setX(116);
 
-    setTimeout(() => {
-      setVisible(false);
-    }, 2200);
+    setTimeout(() => setVisible(false), 2200);
 
     setTimeout(() => {
       if (!awayRef.current) return;
@@ -265,29 +264,7 @@ export default function RiggyPetOverlay() {
     setX(78);
     setMessage(text);
 
-    setTimeout(() => {
-      talk(text);
-    }, 2500);
-  }
-
-  function welcomeViewer(viewer: string) {
-    if (awayRef.current || !visible) {
-      returnFromOffscreen(`Wait! New friend! Welcome ${viewer}! 💜`);
-      return;
-    }
-
-    busyRef.current = true;
-    setState("happy");
-    setMessage(`Welcome ${viewer}! I’m Riggy! 💜`);
-
-    setTimeout(() => {
-      setState("talk");
-    }, 1000);
-
-    setTimeout(() => {
-      setState("idle");
-      busyRef.current = false;
-    }, 5500);
+    setTimeout(() => talk(text), 2500);
   }
 
   const showBubble =
@@ -312,17 +289,7 @@ export default function RiggyPetOverlay() {
           )}
 
           <div
-            className={`relative h-64 w-64 ${
-              state === "idle" ? "animate-[riggyBreathe_3s_ease-in-out_infinite]" : ""
-            } ${
-              state === "happy" || state === "snack" || state === "plushy"
-                ? "animate-[riggyHappy_0.75s_ease-in-out_infinite]"
-                : ""
-            } ${
-              state === "sad" ? "animate-[riggySad_2s_ease-in-out_infinite]" : ""
-            } ${
-              state === "sleep" ? "animate-[riggySleep_3s_ease-in-out_infinite]" : ""
-            }`}
+            className="relative h-64 w-64"
             style={{
               transform: facing === "right" ? "scaleX(-1)" : "scaleX(1)",
             }}
@@ -340,7 +307,7 @@ export default function RiggyPetOverlay() {
             )}
 
             {state === "plushy" && (
-              <div className="absolute -right-8 bottom-8 text-6xl animate-[riggyBreathe_1.4s_ease-in-out_infinite]">
+              <div className="absolute -right-8 bottom-8 text-6xl animate-bounce">
                 🧸
               </div>
             )}
@@ -351,56 +318,8 @@ export default function RiggyPetOverlay() {
               </div>
             )}
           </div>
-
-          <div className="mt-2 rounded-full border border-pink-400 bg-black/80 px-5 py-2 text-sm font-black text-pink-200 shadow-[0_0_20px_#ec4899]">
-            Riggy • {state}
-          </div>
         </div>
       )}
-
-      <style jsx global>{`
-        @keyframes riggyBreathe {
-          0%,
-          100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-6px) scale(1.035);
-          }
-        }
-
-        @keyframes riggyHappy {
-          0%,
-          100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-14px) scale(1.06);
-          }
-        }
-
-        @keyframes riggySad {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(-2deg) scale(0.96);
-            opacity: 0.95;
-          }
-          50% {
-            transform: translateY(3px) rotate(2deg) scale(0.94);
-            opacity: 0.85;
-          }
-        }
-
-        @keyframes riggySleep {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(-4deg) scale(0.96);
-          }
-          50% {
-            transform: translateY(3px) rotate(-4deg) scale(1);
-          }
-        }
-      `}</style>
     </main>
   );
 }
