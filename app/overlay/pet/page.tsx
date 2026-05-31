@@ -48,8 +48,12 @@ export default function RiggyPetOverlay() {
   useEffect(() => {
     const blinkTimer = setInterval(() => {
       if (busyRef.current || awayRef.current) return;
+
       setState("blink");
-      setTimeout(() => setState("idle"), 220);
+
+      setTimeout(() => {
+        setState("idle");
+      }, 220);
     }, 7000);
 
     return () => clearInterval(blinkTimer);
@@ -135,7 +139,7 @@ export default function RiggyPetOverlay() {
 
         talk(data.message || "Riggy heard something!");
       } catch {
-        // OBS overlay should never crash
+        // keep OBS overlay alive
       }
     }, 1500);
 
@@ -151,6 +155,7 @@ export default function RiggyPetOverlay() {
     if (state === "walk") return walkFrame === 1 ? PETS.walk1 : PETS.walk2;
     if (state === "snack") return PETS.happy;
     if (state === "plushy") return PETS.happy;
+
     return PETS.idle;
   }
 
@@ -248,7 +253,9 @@ export default function RiggyPetOverlay() {
     setFacing("right");
     setX(116);
 
-    setTimeout(() => setVisible(false), 2200);
+    setTimeout(() => {
+      setVisible(false);
+    }, 2200);
 
     setTimeout(() => {
       if (!awayRef.current) return;
@@ -264,7 +271,9 @@ export default function RiggyPetOverlay() {
     setX(78);
     setMessage(text);
 
-    setTimeout(() => talk(text), 2500);
+    setTimeout(() => {
+      talk(text);
+    }, 2500);
   }
 
   const showBubble =
